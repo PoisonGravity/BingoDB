@@ -26,6 +26,8 @@ public class TransactionManagerImpl implements TransactionManager {
     private FileChannel fc;
     private RandomAccessFile file;
 
+    private long xidCounter;
+
     private Lock counterLock;
 
     TransactionManagerImpl(RandomAccessFile raf, FileChannel fc){
