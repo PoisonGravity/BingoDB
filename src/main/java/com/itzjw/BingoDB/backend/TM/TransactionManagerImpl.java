@@ -1,10 +1,16 @@
 package com.itzjw.BingoDB.backend.TM;
 
+import com.itzjw.BingoDB.backend.utils.Panic;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import com.itzjw.BingoDB.common.Error;
+
 
 public class TransactionManagerImpl implements TransactionManager {
 
@@ -37,13 +43,30 @@ public class TransactionManagerImpl implements TransactionManager {
         checkXIRCounter();
     }
 
+
+    /**
+     * 检查XID文件是否合法
+     * 读取XID_FILE_HEADER中的xidcounter，根据他计算文件的理论长度，对比实际长度
+     */
     private void checkXIRCounter(){
         long fileLen = 0;
         try{
             fileLen = file.length();
-        }catch (IOException io1){
-
+        }catch (IOException e1){
+            Panic.panic(Error.BadXIDFileException);
         }
+        if(fileLen < LEN_XID_HEAD_LENGTH){
+            Panic.panic(Error.BadXIDFileException);
+        }
+
+        ByteBuffer buf = ByteBuffer.allocate(LEN_XID_HEAD_LENGTH);
+        try{
+            fc.position(0);
+            fc.read(buf);
+        }catch (IOException e){
+            Panic.panic(e);
+        }
+
 
     }
 
