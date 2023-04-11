@@ -80,8 +80,51 @@ public class TransactionManagerImpl implements TransactionManager {
     public long getXidPosition(long xid) {return LEN_XID_HEAD_LENGTH+(xid - 1)*XID_FIELD_SIZE;}
 
     public long begin() {
-        return 0;
+        counterLock.lock();
+        try{
+            long xid = xidCounter+1;
+            updateXID(xid, FIELD_TRAN_ACTIVE);
+            incrXIDCounter();
+            return xid;
+        }finally {
+            counterLock.unlock();
+        }
     }
+
+    private void updateXID(long xid, byte status){
+        long offset = getXidPosition(xid);
+        byte[] tmp = new byte[XID_FIELD_SIZE];
+        tmp[0] = status;
+        ByteBuffer buf = ByteBuffer.wrap(tmp);
+        try{
+            fc.position(offset);
+            fc.write(buf);
+        }catch (IOException e){
+            Panic.panic(e);
+        }
+        try{
+            fc.force(false);
+        }catch (IOException e){
+            Panic.panic(e);
+        }
+    }
+
+    private void incrXIDCounter(){
+        xidCounter++;
+        ByteBuffer buf = ByteBuffer.wrap(Parser.long2Byte(xidCounter));
+        try{
+            fc.position(0);
+            fc.write(buf);
+        }catch (IOException e){
+            Panic.panic(e);
+        }
+        try{
+            fc.force(false);
+        }catch (IOException e){
+            Panic.panic(e);
+        }
+    }
+
 
     public void commit(long xid) {
 
