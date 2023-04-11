@@ -125,28 +125,54 @@ public class TransactionManagerImpl implements TransactionManager {
         }
     }
 
+    //    注意，这里的所有文件操作，在执行后都需要立刻刷入文件中，防止在崩溃后文件丢失数据，
+    //    fileChannel 的 force() 方法，强制同步缓存内容到文件中，类似于 BIO 中的 flush() 方法。
+    //    force 方法的参数是一个布尔，表示是否同步文件的元数据（例如最后修改时间等）。
 
+
+
+    //    isActive()、isCommitted() 和 isAborted() 都是检查一个 xid 的状态，可以用一个通用的方法解决：
+    private boolean checkXID(long xid, byte status){
+        long offset = getXidPosition(xid);
+        ByteBuffer buf = ByteBuffer.wrap(new byte[XID_FIELD_SIZE]);
+        try{
+            fc.position(offset);
+            fc.read(buf);
+        }catch (IOException e){
+            Panic.panic(e);
+        }
+        return buf.array()[0] == status;
+    }
     public void commit(long xid) {
-
+        updateXID(xid, FIELD_TRAN_COMMITTED);
     }
 
     public void abort(long xid) {
-
+        updateXID(xid, FIELD_TRAN_ABORTED);
     }
 
     public boolean isActive(long xid) {
-        return false;
+        if(xid == SUPER_XID) return false;
+        return checkXID(xid, FIELD_TRAN_ACTIVE);
     }
 
     public boolean isCommited(long xid) {
-        return false;
+        if(xid == SUPER_XID) return false;
+        return checkXID(xid, FIELD_TRAN_COMMITTED);
     }
 
     public boolean isAborted(long xid) {
-        return false;
+        if(xid == SUPER_XID) return false;
+        return checkXID(xid, FIELD_TRAN_ABORTED);
     }
 
     public void close() {
+        try{
+            fc.close();
+            file.close();
+        }catch (IOException e){
+            Panic.panic(e);
+        }
 
     }
 }
