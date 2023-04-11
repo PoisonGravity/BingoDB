@@ -9,6 +9,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import com.itzjw.BingoDB.backend.utils.Parser;
 import com.itzjw.BingoDB.common.Error;
 
 
@@ -40,7 +42,7 @@ public class TransactionManagerImpl implements TransactionManager {
         this.file = raf;
         this.fc = fc;
         counterLock = new ReentrantLock();
-        checkXIRCounter();
+        checkXIDCounter();
     }
 
 
@@ -48,7 +50,7 @@ public class TransactionManagerImpl implements TransactionManager {
      * 检查XID文件是否合法
      * 读取XID_FILE_HEADER中的xidcounter，根据他计算文件的理论长度，对比实际长度
      */
-    private void checkXIRCounter(){
+    private void checkXIDCounter(){
         long fileLen = 0;
         try{
             fileLen = file.length();
@@ -66,10 +68,16 @@ public class TransactionManagerImpl implements TransactionManager {
         }catch (IOException e){
             Panic.panic(e);
         }
-
+        this.xidCounter = Parser.parseLong(buf.array());
+        long end = getXidPosition(this.xidCounter + 1);
+        if(end != fileLen){
+            Panic.panic(Error.BadXIDFileException);
+        }
 
     }
 
+
+    public long getXidPosition(long xid) {return LEN_XID_HEAD_LENGTH+(xid - 1)*XID_FIELD_SIZE;}
 
     public long begin() {
         return 0;
