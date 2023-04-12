@@ -4,6 +4,7 @@ import com.itzjw.BingoDB.backend.utils.Panic;
 import com.itzjw.BingoDB.common.Error;
 
 import java.util.HashMap;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -102,7 +103,23 @@ public abstract class AbstractCache<T> {
         }
     }
 
-
+    /**
+     * 关闭缓存，写回所有资源
+     */
+    protected void close(){
+        lock.lock();
+        try{
+            Set<Long> keys = cache.keySet();
+            for (long key: keys){
+                T obj = cache.get(key);
+                releaseForCache(obj);
+                references.remove(key);
+                cache.remove(key);
+            }
+        }finally {
+            lock.unlock();
+        }
+    }
 
 
 
