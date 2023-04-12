@@ -82,6 +82,31 @@ public abstract class AbstractCache<T> {
     }
 
     /**
+     * 强行释放一个缓存
+     */
+    protected void release(long key){
+        lock.lock();
+        try{
+            int ref = references.get(key) - 1;
+            if(ref == 0){
+                T obj = cache.get(key);
+                releaseForCache(obj);
+                references.remove(key);
+                cache.remove(key);
+                count--;
+            }else {
+                references.put(key, ref);
+            }
+        }finally {
+            lock.unlock();
+        }
+    }
+
+
+
+
+
+    /**
      * 当资源不在缓存时的获取行为
      */
     protected abstract T getForCache(long key) throws Exception;
