@@ -14,4 +14,12 @@ public class Error {
 
     //TM
     public static final Exception BadXIDFileException = new Exception("Bad XID File!!!");
+
+
+    //DM
+    public static final Exception BadLogFileException = new Exception("Bad log file!");
+    public static final Exception MemTooSmallException = new Exception("Memory too small!");
+    public static final Exception DataTooLargeException = new Exception("Data too large!");
+    public static final Exception DatabaseBusyException = new Exception("Database is busy!");
+
 }

@@ -3,6 +3,7 @@ package com.itzjw.BingoDB.backend.Dm.page;
 import com.itzjw.BingoDB.backend.Dm.pageCache.PageCache;
 
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class PageImpl implements Page{
 
@@ -15,6 +16,13 @@ public class PageImpl implements Page{
     private Lock lock;
 
     private PageCache pc;
+
+    PageImpl(int pageNumber, byte[] initData, PageCache pc){
+        this.pageNumber = pageNumber;
+        this.data = initData;
+        this.pc = pc;
+        lock = new ReentrantLock();
+    }
 
 
     @Override
