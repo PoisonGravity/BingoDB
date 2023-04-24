@@ -17,7 +17,7 @@ public class PageImpl implements Page{
 
     private PageCache pc;
 
-    PageImpl(int pageNumber, byte[] initData, PageCache pc){
+    public PageImpl(int pageNumber, byte[] initData, PageCache pc){
         this.pageNumber = pageNumber;
         this.data = initData;
         this.pc = pc;
