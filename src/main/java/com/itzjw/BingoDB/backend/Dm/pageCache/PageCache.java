@@ -19,6 +19,9 @@ public interface PageCache {
 
     void flushPage(Page pg);
 
+    public static PageCacheImpl create(String path, long memory) {
 
+        return null;
+    }
 
 }
